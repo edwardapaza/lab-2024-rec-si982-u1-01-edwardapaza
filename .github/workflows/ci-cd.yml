@@ -40,17 +40,15 @@ jobs:
       - name: Crear carpeta TestResults si no existe
         run: mkdir -p TestResults
 
+      # Copiar archivo coverage.cobertura.xml manualmente
+      - name: Copiar archivo coverage.cobertura.xml
+        run: |
+          mkdir -p TestResults
+          cp ./coverage.cobertura.xml ./TestResults/coverage.cobertura.xml
+
       # Verificar contenido de la carpeta TestResults
       - name: Verificar contenido de TestResults
         run: ls -R TestResults
-
-      # Verificar permisos de TestResults
-      - name: Verificar permisos de TestResults
-        run: ls -l TestResults
-
-      # Verificar ruta completa de coverage.cobertura.xml
-      - name: Verificar ruta completa de coverage.cobertura.xml
-        run: "echo Ruta completa: $(pwd)/TestResults/coverage.cobertura.xml"
 
       # Generar reporte de cobertura
       - name: Generar reporte de cobertura
