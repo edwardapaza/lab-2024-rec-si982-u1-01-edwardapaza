@@ -1,8 +1,8 @@
 name: Construcción y despliegue de una aplicación ASP.NET MVC a Azure
 
 env:
-  AZURE_WEBAPP_NAME: upt-awa-349          # Aquí va el nombre de su aplicación
-  AZURE_WEBAPP_PACKAGE_PATH: '.'          # Ruta de destino
+  AZURE_WEBAPP_NAME: upt-awa-349          # Nombre de la aplicación en Azure
+  AZURE_WEBAPP_PACKAGE_PATH: '.'          # Ruta de destino del paquete
   DOTNET_VERSION: '8'                     # Versión de .NET
 
 on:
@@ -17,63 +17,73 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del código
-        uses: actions/checkout@v4
+      # Clonar el repositorio
+      - uses: actions/checkout@v4
 
-      - name: Configurar .NET Core
+      # Configurar .NET
+      - name: Configurando .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Configurar Java
-        uses: actions/setup-java@v4
+      # Configurar Java
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Restaurar los paquetes
-        run: |
-          cd src
-          dotnet restore
+      # Restaurar los paquetes
+      - name: Restaurar paquetes
+        run: cd src && dotnet restore
 
+      # Ejecutar pruebas con cobertura
       - name: Ejecutar pruebas con cobertura
         run: |
           cd src
-          dotnet test --collect:"XPlat Code Coverage" --settings ../coverlet.runsettings --results-directory ../TestResults
+          dotnet test --collect:"XPlat Code Coverage" --results-directory ../TestResults --logger "trx;LogFileName=test_results.trx"
 
+      # Listar archivos generados en el directorio de resultados
+      - name: Listar contenido de TestResults
+        run: ls -R TestResults
+
+      # Generar reporte de cobertura
       - name: Generar reporte de cobertura
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.7
         with:
-          reports: ./TestResults/**/*.xml
+          reports: TestResults/**/coverage.cobertura.xml
           targetdir: coveragereport
           reporttypes: MarkdownSummary;MarkdownAssembliesSummary;MarkdownSummaryGithub
 
-      - name: Subir reporte de cobertura como artefacto
+      # Subir el reporte de cobertura como artefacto
+      - name: Subir artefacto del reporte de cobertura
         uses: actions/upload-artifact@v4
         with:
           name: CoverageReport
           path: coveragereport
 
-      - name: Publicar cobertura en resumen del build
+      # Publicar el resumen de cobertura en el build
+      - name: Publicar cobertura en el resumen de build
         run: cat coveragereport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
         shell: bash
 
-      - name: Instalar Scanner de SonarCloud
+      # Instalar Scanner para análisis de código
+      - name: Instalar SonarScanner
         run: dotnet tool install -g dotnet-sonarscanner
 
-      - name: Ejecutar análisis de SonarCloud
+      # Ejecutar análisis de código con SonarQube
+      - name: Ejecutar escaneo de Sonar
         run: |
           cd src
           dotnet-sonarscanner begin /k:"${{ env.SONAR_PROJECT }}" /o:"${{ env.SONAR_ORG }}" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
+      # Publicar la aplicación localmente
       - name: Publicar la aplicación localmente
-        run: |
-          cd src
-          dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/publish
+        run: cd src && dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/publish
 
-      - name: Subir el artefacto para el job de despliegue
+      # Subir el artefacto para el despliegue
+      - name: Subir artefacto de la aplicación
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
@@ -89,12 +99,14 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Descargar el artefacto del job de construcción
+      # Descargar artefacto generado por el build
+      - name: Descargar artefacto de la aplicación
         uses: actions/download-artifact@v4
         with:
           name: .net-app
 
-      - name: Desplegar en Azure Web App
+      # Desplegar la aplicación a Azure Web App
+      - name: Desplegar a Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
