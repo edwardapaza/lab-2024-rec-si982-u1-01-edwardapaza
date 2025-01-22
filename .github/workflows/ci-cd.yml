@@ -36,25 +36,15 @@ jobs:
       - name: Restaurar paquetes
         run: cd src && dotnet restore
 
-      # Crear la carpeta TestResults si no existe
-      - name: Crear carpeta TestResults si no existe
-        run: mkdir -p tests/TestResults
-
-      # Ejecutar pruebas con cobertura
-      - name: Ejecutar pruebas con cobertura
-        run: |
-          cd src
-          dotnet test --collect:"XPlat Code Coverage" --results-directory ../tests/TestResults --logger "trx;LogFileName=test_results.trx"
-
       # Verificar contenido de la carpeta TestResults
       - name: Verificar contenido de TestResults
         run: ls -R tests/TestResults
 
-      # Generar reporte de cobertura
+      # Generar reporte de cobertura usando el archivo existente
       - name: Generar reporte de cobertura
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.7
         with:
-          reports: ./tests/TestResults/**/coverage.cobertura.xml  # Busca en subcarpetas
+          reports: ./tests/TestResults/coverage.cobertura.xml  # Ruta exacta del archivo existente
           targetdir: coveragereport
           reporttypes: MarkdownSummary;MarkdownAssembliesSummary;MarkdownSummaryGithub
 
