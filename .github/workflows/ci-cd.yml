@@ -1,14 +1,15 @@
 name: Construcción y despliegue de una aplicación ASP.NET MVC a Azure
 
 env:
-  AZURE_WEBAPP_NAME: upt-awa-349          # Aquí va el nombre de tu aplicación
-  AZURE_WEBAPP_PACKAGE_PATH: '.'          # Es la ruta de destino
-  DOTNET_VERSION: '8'                     # La versión de .NET
+  AZURE_WEBAPP_NAME: upt-awa-349          # Aquí va el nombre de su aplicación
+  AZURE_WEBAPP_PACKAGE_PATH: '.'          # Ruta de destino
+  DOTNET_VERSION: '8'                     # Versión de .NET
 
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+
 permissions:
   contents: read
 
@@ -16,29 +17,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Configurando .NET Core
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - uses: actions/setup-java@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      
-      - name: Restaurar los paquetes
-        run: cd src && dotnet restore
 
-      - name: Crear directorio para resultados de pruebas
-        run: mkdir -p TestResults
+      - name: Restaurar los paquetes
+        run: |
+          cd src
+          dotnet restore
 
       - name: Ejecutar pruebas con cobertura
         run: |
           cd src
-          dotnet test --collect:"XPlat Code Coverage" --results-directory:../TestResults
-
-      - name: Verificar archivos generados
-        run: ls -R ./TestResults
+          dotnet test --collect:"XPlat Code Coverage" --settings ../coverlet.runsettings --results-directory ../TestResults
 
       - name: Generar reporte de cobertura
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.7
@@ -47,28 +48,30 @@ jobs:
           targetdir: coveragereport
           reporttypes: MarkdownSummary;MarkdownAssembliesSummary;MarkdownSummaryGithub
 
-      - name: Subir el reporte de cobertura como artefacto
+      - name: Subir reporte de cobertura como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: CoverageReport 
-          path: coveragereport 
+          name: CoverageReport
+          path: coveragereport
 
-      - name: Publicar el reporte de cobertura en el resumen de build
-        run: cat coveragereport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY 
+      - name: Publicar cobertura en resumen del build
+        run: cat coveragereport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
         shell: bash
 
-      - name: Instalar SonarScanner
+      - name: Instalar Scanner de SonarCloud
         run: dotnet tool install -g dotnet-sonarscanner
 
-      - name: Ejecutar análisis con SonarScanner
+      - name: Ejecutar análisis de SonarCloud
         run: |
           cd src
           dotnet-sonarscanner begin /k:"${{ env.SONAR_PROJECT }}" /o:"${{ env.SONAR_ORG }}" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
-      - name: Publicar la aplicación de manera local
-        run: cd src && dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/publish
+      - name: Publicar la aplicación localmente
+        run: |
+          cd src
+          dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/publish
 
       - name: Subir el artefacto para el job de despliegue
         uses: actions/upload-artifact@v4
@@ -86,12 +89,12 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Descargar el artefacto desde el job de construcción
+      - name: Descargar el artefacto del job de construcción
         uses: actions/download-artifact@v4
         with:
           name: .net-app
 
-      - name: Desplegar a Azure Web App
+      - name: Desplegar en Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
