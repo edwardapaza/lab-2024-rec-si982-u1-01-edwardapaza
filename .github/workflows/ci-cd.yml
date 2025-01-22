@@ -31,6 +31,9 @@ jobs:
       - name: Restaurar los paquetes
         run: cd src && dotnet restore
 
+      - name: Crear directorio para resultados de pruebas
+        run: mkdir -p TestResults
+
       - name: Ejecutar pruebas
         run: |
           cd src
