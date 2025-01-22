@@ -1,9 +1,9 @@
 name: Construcción y despliegue de una aplicación ASP.NET MVC a Azure
 
 env:
-  AZURE_WEBAPP_NAME: upt-awa-352
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
-  DOTNET_VERSION: '8'
+  AZURE_WEBAPP_NAME: upt-awa-349          # Aqui va el nombre de su aplicación
+  AZURE_WEBAPP_PACKAGE_PATH: '.'          # Es la ruta de destino
+  DOTNET_VERSION: '8'                     # la versión de .NET
 
 on:
   push:
@@ -28,11 +28,11 @@ jobs:
       - name: Restaurar los paquetes
         run: cd src && dotnet restore
       - name: Ejecutar pruebas
-        run: cd src && dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=.\coverage.cobertura.xml
+        run: cd src && dotnet test --collect:"XPlat Code Coverage"
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.7
         with:
-          reports: ./src/coverage.cobertura.xml
+          reports: ./src/*/*/*/coverage.cobertura.xml
           targetdir: coveragereport
           reporttypes: MarkdownSummary;MarkdownAssembliesSummary;MarkdownSummaryGithub
       - name: Upload coverage report artifact
