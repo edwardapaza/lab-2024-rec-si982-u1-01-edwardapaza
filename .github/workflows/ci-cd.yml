@@ -40,23 +40,23 @@ jobs:
       - name: Crear carpeta TestResults si no existe
         run: mkdir -p TestResults
 
-      # Ejecutar pruebas con cobertura
-      - name: Ejecutar pruebas con cobertura
-        run: |
-          cd src
-          dotnet test --collect:"XPlat Code Coverage" --results-directory ../TestResults --logger "trx;LogFileName=test_results.trx"
-          echo "Contenido de TestResults:"
-          ls -R ../TestResults
-
       # Verificar contenido de la carpeta TestResults
       - name: Verificar contenido de TestResults
         run: ls -R TestResults
+
+      # Verificar permisos de TestResults
+      - name: Verificar permisos de TestResults
+        run: ls -l TestResults
+
+      # Verificar ruta completa de coverage.cobertura.xml
+      - name: Verificar ruta completa de coverage.cobertura.xml
+        run: echo "Ruta completa: $(pwd)/TestResults/coverage.cobertura.xml"
 
       # Generar reporte de cobertura
       - name: Generar reporte de cobertura
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.7
         with:
-          reports: ./TestResults/**/coverage.cobertura.xml
+          reports: ./TestResults/coverage.cobertura.xml  # Ruta exacta
           targetdir: coveragereport
           reporttypes: MarkdownSummary;MarkdownAssembliesSummary;MarkdownSummaryGithub
 
