@@ -50,7 +50,7 @@ jobs:
 
       # Verificar ruta completa de coverage.cobertura.xml
       - name: Verificar ruta completa de coverage.cobertura.xml
-        run: echo "Ruta completa: $(pwd)/TestResults/coverage.cobertura.xml"
+        run: "echo Ruta completa: $(pwd)/TestResults/coverage.cobertura.xml"
 
       # Generar reporte de cobertura
       - name: Generar reporte de cobertura
