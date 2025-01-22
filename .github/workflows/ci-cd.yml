@@ -45,6 +45,8 @@ jobs:
         run: |
           cd src
           dotnet test --collect:"XPlat Code Coverage" --results-directory ../TestResults --logger "trx;LogFileName=test_results.trx"
+          echo "Contenido de TestResults:"
+          ls -R ../TestResults
 
       # Verificar contenido de la carpeta TestResults
       - name: Verificar contenido de TestResults
