@@ -50,3 +50,12 @@ resource "azurerm_linux_web_app" "webapp" {
     }
   }
 }
+
+# Recurso para configurar el control de código fuente en Azure App Service
+resource "azurerm_app_service_source_control" "app_service_source_control" {
+  app_id = azurerm_app_service.app_service.id  # ID de la App Service
+  repo_url = "https://github.com/UPT-FAING-EPIS/lab-2024-rec-si982-u1-01-edwardapaza"  # URL del repositorio
+  branch = "main"  # Rama a desplegar
+  use_manual_integration = false  # Integración automática
+  use_mercurial = false  # No usar Mercurial (Git es el predeterminado)
+}
