@@ -36,14 +36,18 @@ jobs:
       - name: Restaurar paquetes
         run: cd src && dotnet restore
 
+      # Crear la carpeta TestResults si no existe
+      - name: Crear carpeta TestResults si no existe
+        run: mkdir -p TestResults
+
       # Ejecutar pruebas con cobertura
       - name: Ejecutar pruebas con cobertura
         run: |
           cd src
           dotnet test --collect:"XPlat Code Coverage" --results-directory ../TestResults --logger "trx;LogFileName=test_results.trx"
 
-      # Listar archivos generados en el directorio de resultados
-      - name: Listar contenido de TestResults
+      # Verificar contenido de la carpeta TestResults
+      - name: Verificar contenido de TestResults
         run: ls -R TestResults
 
       # Generar reporte de cobertura
