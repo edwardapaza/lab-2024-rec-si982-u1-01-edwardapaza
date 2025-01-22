@@ -54,7 +54,7 @@ jobs:
       - name: Generar reporte de cobertura
         uses: danielpalme/ReportGenerator-GitHub-Action@5.3.7
         with:
-          reports: ./tests/TestResults/coverage.cobertura.xml  # Ruta exacta del archivo de cobertura
+          reports: ./tests/TestResults/**/coverage.cobertura.xml  # Busca en subcarpetas
           targetdir: coveragereport
           reporttypes: MarkdownSummary;MarkdownAssembliesSummary;MarkdownSummaryGithub
 
